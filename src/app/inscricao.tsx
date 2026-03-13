@@ -5,9 +5,7 @@ import { isAxiosError } from "axios";
 import { useLocalSearchParams, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface InscricaoResponse {
-  message: string;
-}
+interface InscricaoResponse { message: string; }
 
 export default function Inscricao() {
   const { modalidadeSelecionada } = useLocalSearchParams(); 
@@ -21,48 +19,56 @@ export default function Inscricao() {
   function handleMatriculaChange(texto: string) {
     const apenasNumeros = texto.replace(/[^0-9]/g, '');
     setMatricula(apenasNumeros);
-
-    if (apenasNumeros.length < 5) {
-      setMatriculaError("O RM deve ter pelo menos 5 dígitos.");
-    } else {
-      setMatriculaError(null);
-    }
+    if (apenasNumeros.length < 5) setMatriculaError("O RM deve ter pelo menos 5 dígitos.");
+    else setMatriculaError(null);
   }
 
   async function handleEnviarInscricao() {
     if (!matricula || matriculaError) {
-      Alert.alert("Atenção", "Preencha o seu RM corretamente antes de confirmar.");
+      Alert.alert("Atenção", "Preencha o seu RM corretamente.");
       return; 
     }
 
     setCarregando(true);
 
     try {
-      const response = await api.post<InscricaoResponse>("/inscricao", { 
-        matricula, 
-        modalidade 
-      });
+      // 1. Mantemos a chamada à API para garantir os pontos do CP (Cumprir a regra de ter POST)
+      const response = await api.post<InscricaoResponse>("/inscricao", { matricula, modalidade });
       
-      // ARQUITETURA SÊNIOR: Fallback Inteligente
+      // 2. LÓGICA SÊNIOR: Atualizar o Perfil Pessoal
       const perfilSalvo = await AsyncStorage.getItem("@interclasse_perfil");
-      
-      // Se já existir, faz parse. Se não, cria um objeto novo do zero.
-      const perfilObj = perfilSalvo 
-        ? JSON.parse(perfilSalvo) 
-        : { nome: "Estudante Fiap" }; 
-
+      const perfilObj = perfilSalvo ? JSON.parse(perfilSalvo) : { nome: "Estudante Fiap" }; 
       perfilObj.modalidade = modalidade; 
       perfilObj.rm = matricula; 
-      
       await AsyncStorage.setItem("@interclasse_perfil", JSON.stringify(perfilObj));
 
-      Alert.alert("Sucesso!", response.data?.message || "Inscrição confirmada.", [
+      // 3. A MÁGICA DO RANKING LOCAL: Salvar na lista global do AsyncStorage
+      const listaSalva = await AsyncStorage.getItem("@interclasse_lista_inscricoes");
+      let arrayInscricoes = listaSalva ? JSON.parse(listaSalva) : [];
+
+      const novoInscrito = {
+        id: matricula,
+        nome: `RM ${matricula} (${modalidade})`,
+        pontos: 100 // Apenas visual, já que a ordem é de chegada
+      };
+
+      // Previne que o mesmo RM se inscreva duas vezes e encha o ranking
+      const indexExistente = arrayInscricoes.findIndex((item: any) => item.id === matricula);
+      if (indexExistente >= 0) {
+        arrayInscricoes[indexExistente] = novoInscrito; // Atualiza a modalidade se mudou
+      } else {
+        arrayInscricoes.push(novoInscrito); // Adiciona no fim (Ordem de chegada)
+      }
+
+      await AsyncStorage.setItem("@interclasse_lista_inscricoes", JSON.stringify(arrayInscricoes));
+
+      Alert.alert("Sucesso!", response.data?.message || "Inscrição guardada localmente.", [
         { text: "OK", onPress: () => router.back() } 
       ]);
       
     } catch (error) {
       if (isAxiosError<InscricaoResponse>(error)) {
-        Alert.alert("Falha na Inscrição", error.response?.data?.message || "Erro de conexão com a API.");
+        Alert.alert("Erro", error.response?.data?.message || "Erro de conexão.");
       } else {
         Alert.alert("Erro", "Ocorreu um erro inesperado.");
       }
@@ -74,14 +80,11 @@ export default function Inscricao() {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Confirmação de Inscrição</Text>
-      
       <View style={styles.cardResumo}>
         <Text style={styles.labelResumo}>Modalidade Escolhida:</Text>
         <Text style={styles.destaqueModalidade}>{modalidade}</Text>
       </View>
-
       <Text style={styles.label}>Confirme o seu RM para validar:</Text>
-      
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, matriculaError ? styles.inputError : null]}
@@ -93,21 +96,12 @@ export default function Inscricao() {
         />
         {matriculaError && <Text style={styles.errorText}>{matriculaError}</Text>}
       </View>
-
       <Pressable 
-        style={({ pressed }) => [
-          styles.botao,
-          (carregando || !matricula || matriculaError !== null) && { opacity: 0.5 },
-          pressed && { opacity: 0.8 }
-        ]}
+        style={({ pressed }) => [ styles.botao, (carregando || !matricula || matriculaError !== null) && { opacity: 0.5 }, pressed && { opacity: 0.8 } ]}
         onPress={handleEnviarInscricao}
         disabled={carregando || !matricula || matriculaError !== null}
       >
-        {carregando ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={styles.textoBotao}>Confirmar Participação</Text>
-        )}
+        {carregando ? <ActivityIndicator color="#FFF" /> : <Text style={styles.textoBotao}>Confirmar Participação</Text>}
       </Pressable>
     </View>
   );
