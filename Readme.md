@@ -6,9 +6,11 @@ O **Interclasse Digital** é um aplicativo mobile desenvolvido em React Native p
 Projeto desenvolvido para o Checkpoint de Desenvolvimento Mobile - 2º Semestre.
 
 ## 👥 Integrantes do Time
-* **Nome do Integrante 1** - RM: 123456
-* **Nome do Integrante 2** - RM: 654321
-* **Nome do Integrante 3** - RM: 987654
+Gabriel Mediotti Marques - **RM 552632**
+Jó Sales - **RM 552679**
+Miguel Garcez de Carvalho - **RM 553768**
+Vinicius Souza e Silva - **RM 552781**
+Gustavo Bezerra Assumção - **RM 553076**
 
 ---
 
@@ -36,17 +38,5 @@ Projeto desenvolvido para o Checkpoint de Desenvolvimento Mobile - 2º Semestre.
 
 * **No Celular:** Abra o app **Expo Go** e escaneie o QR Code.
 * **No PC:** Pressione `a` para Android ou `i` para iOS (se tiver emulador).
-
----
-
-### 5. Integrantes
-
-Gabriel Mediotti Marques - **RM 552632**
-Jó Sales - **RM 552679**
-Miguel Garcez de Carvalho - **RM 553768**
-Vinicius Souza e Silva - **RM 552781**
-Gustavo Bezerra Assumção - **RM 553076**
-
----
 
 **Nota:** Esta é uma versão provisória para validação dos endpoints e da interface inicial.
