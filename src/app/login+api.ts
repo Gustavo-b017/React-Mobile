@@ -1,18 +1,25 @@
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const { email, password } = body;
 
-    // Validação de segurança básica hardcoded conforme solicitado
-    if (email === "rm123456" && password === "123") {
+    // A MÁGICA: Simula um servidor real com 1.5s de delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // LÓGICA SÊNIOR: Trata a string para evitar erros bobos de teclado (espaços e maiúsculas)
+    const loginTratado = email ? email.trim().toLowerCase() : "";
+
+    // Validação flexível e segura
+    if ((loginTratado === "rm123456" || loginTratado.includes("@")) && password === "123") {
       return Response.json(
-        { message: "Acesso autorizado!", email },
+        { message: "Acesso autorizado!", email: loginTratado },
         { status: 200 }
       );
     }
 
     return Response.json(
-      { message: "Usuário e/ou senha incorreta!" },
-      { status: 401 } // 401 = Unauthorized
+      { message: "Credenciais inválidas. Tente RM: rm123456 e Senha: 123" },
+      { status: 401 }
     );
   } catch (error) {
     return Response.json(
