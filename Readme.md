@@ -33,4 +33,14 @@ npx expo start
 
 ---
 
+### 5. Integrantes
+
+Gabriel Mediotti Marques - **RM 552632**
+Jó Sales - **RM 552679**
+Miguel Garcez de Carvalho - **RM 553768**
+Vinicius Souza e Silva - **RM 552781**
+Gustavo Bezerra Assumção - **RM 553076**
+
+---
+
 **Nota:** Esta é uma versão provisória para validação dos endpoints e da interface inicial.
