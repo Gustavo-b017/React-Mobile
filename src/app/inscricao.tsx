@@ -3,8 +3,8 @@ import { View, Text, TextInput, StyleSheet, Pressable, Alert, ActivityIndicator 
 import { api } from "@/server/api";
 import { isAxiosError } from "axios";
 import { useLocalSearchParams, router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Tipagem forte para a resposta da API (Prática acadêmica essencial)
 interface InscricaoResponse {
   message: string;
 }
@@ -18,9 +18,7 @@ export default function Inscricao() {
 
   const modalidade = typeof modalidadeSelecionada === 'string' ? modalidadeSelecionada : "Esporte não selecionado";
 
-  // Validação em tempo real e formatação
   function handleMatriculaChange(texto: string) {
-    // Regex Sênior: Remove tudo que não for número instantaneamente
     const apenasNumeros = texto.replace(/[^0-9]/g, '');
     setMatricula(apenasNumeros);
 
@@ -32,7 +30,6 @@ export default function Inscricao() {
   }
 
   async function handleEnviarInscricao() {
-    // Bloqueia o envio se houver erro não corrigido
     if (!matricula || matriculaError) {
       Alert.alert("Atenção", "Preencha o seu RM corretamente antes de confirmar.");
       return; 
@@ -41,13 +38,25 @@ export default function Inscricao() {
     setCarregando(true);
 
     try {
-      // Endpoint POST 2 exigido no CP
       const response = await api.post<InscricaoResponse>("/inscricao", { 
         matricula, 
         modalidade 
       });
       
-      Alert.alert("Sucesso!", response.data.message, [
+      // ARQUITETURA SÊNIOR: Fallback Inteligente
+      const perfilSalvo = await AsyncStorage.getItem("@interclasse_perfil");
+      
+      // Se já existir, faz parse. Se não, cria um objeto novo do zero.
+      const perfilObj = perfilSalvo 
+        ? JSON.parse(perfilSalvo) 
+        : { nome: "Estudante Fiap" }; 
+
+      perfilObj.modalidade = modalidade; 
+      perfilObj.rm = matricula; 
+      
+      await AsyncStorage.setItem("@interclasse_perfil", JSON.stringify(perfilObj));
+
+      Alert.alert("Sucesso!", response.data?.message || "Inscrição confirmada.", [
         { text: "OK", onPress: () => router.back() } 
       ]);
       
@@ -80,7 +89,7 @@ export default function Inscricao() {
           keyboardType="numeric"
           value={matricula}
           onChangeText={handleMatriculaChange}
-          maxLength={10} // Prevenção contra abusos
+          maxLength={10}
         />
         {matriculaError && <Text style={styles.errorText}>{matriculaError}</Text>}
       </View>

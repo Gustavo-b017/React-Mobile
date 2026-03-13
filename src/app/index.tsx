@@ -5,7 +5,6 @@ import { isAxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
-// Tipagem rigorosa para a resposta de erro da API
 interface ApiErrorResponse {
   message: string;
 }
@@ -14,10 +13,8 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
-  // Estados de erro separados para feedback visual (Exigência do PDF de Validação)
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
@@ -28,13 +25,12 @@ export default function Home() {
           router.replace("/modalidades");
         }
       } catch (e) {
-        console.error("Erro ao ler sessão do AsyncStorage", e);
+        console.error("Erro ao ler sessão", e);
       }
     }
     verificarSessao();
   }, []);
 
-  // Lógica Sênior: Validação em tempo real (Feedback imediato)
   function handleEmailChange(texto: string) {
     setEmail(texto);
     if (texto.trim() === "") {
@@ -42,7 +38,7 @@ export default function Home() {
     } else if (!texto.includes("@") && !texto.toLowerCase().startsWith("rm")) {
       setEmailError("Insira um RM ou E-mail válido.");
     } else {
-      setEmailError(null); // Limpa o erro se estiver correto
+      setEmailError(null);
     }
   }
 
@@ -56,7 +52,6 @@ export default function Home() {
   }
 
   async function handleEntrar() {
-    // Revalidação forçada antes do envio
     if (!email || emailError || !password || passwordError) {
       Alert.alert("Atenção", "Corrija os erros destacados antes de entrar.");
       return;
@@ -67,17 +62,21 @@ export default function Home() {
     try {
       const response = await api.post("/login", { email, password });
       
-      // Salva a sessão no AsyncStorage após sucesso
+      // ARQUITETURA SÊNIOR: Criação de um objeto de perfil estruturado
+      const perfilUsuario = {
+        rm: email.trim(),
+        nome: "Estudante Fiap", // Simulação do nome
+        modalidade: "Nenhuma"
+      };
+
+      await AsyncStorage.setItem("@interclasse_perfil", JSON.stringify(perfilUsuario));
       await AsyncStorage.setItem("@interclasse_user", email);
+      
       router.replace("/modalidades");
       
     } catch (error) {
-      // Tratamento de erro robusto com Axios
       if (isAxiosError<ApiErrorResponse>(error)) {
-        Alert.alert(
-          "Acesso Negado",
-          error.response?.data?.message || "Servidor indisponível no momento."
-        );
+        Alert.alert("Acesso Negado", error.response?.data?.message || "Servidor indisponível no momento.");
       } else {
         Alert.alert("Erro", "Ocorreu um erro inesperado. Verifique sua conexão.");
       }
@@ -95,7 +94,6 @@ export default function Home() {
       />
       <Text style={styles.titulo}>Interclasse Digital</Text>
       
-      {/* Campo de E-mail com Feedback Visual */}
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, emailError ? styles.inputError : null]}
@@ -108,7 +106,6 @@ export default function Home() {
         {emailError && <Text style={styles.errorText}>{emailError}</Text>}
       </View>
 
-      {/* Campo de Senha com Feedback Visual */}
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, passwordError ? styles.inputError : null]}
@@ -123,7 +120,6 @@ export default function Home() {
       <Pressable
         style={({ pressed }) => [
           styles.button,
-          // Desabilita visualmente o botão se houver erros ou campos vazios
           (carregando || emailError !== null || passwordError !== null || !email || !password) && { opacity: 0.5 },
           pressed && { opacity: 0.8 }
         ]}
@@ -146,7 +142,7 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 24, fontWeight: "bold", color: "#333", marginBottom: 20 },
   inputContainer: { width: "100%", marginBottom: 8 },
   input: { height: 54, width: "100%", backgroundColor: "#FFF", borderRadius: 8, padding: 16, fontSize: 16, borderWidth: 1, borderColor: "#CCC" },
-  inputError: { borderColor: "#e20a27", borderWidth: 2 }, // Destaca o erro em vermelho
+  inputError: { borderColor: "#e20a27", borderWidth: 2 },
   errorText: { color: "#e20a27", fontSize: 12, marginTop: 4, marginLeft: 4, fontWeight: "500" },
   button: { height: 54, width: "100%", backgroundColor: "#0a27e2", borderRadius: 8, justifyContent: "center", alignItems: "center", marginTop: 10 },
   text: { fontSize: 16, fontWeight: "bold", color: "#fff" },

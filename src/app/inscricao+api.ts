@@ -2,18 +2,19 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
+    // Simula a latência da rede real (1.5 segundos) para a UI mostrar o Loading
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     // Validação de segurança no backend
     if (!body.matricula || !body.modalidade) {
       return Response.json(
-        { message: "Matrícula e Modalidade são obrigatórios." },
+        { message: "A Matrícula e a Modalidade são obrigatórias." },
         { status: 400 }
       );
     }
 
-    // Aqui o backend salvaria na base de dados.
-    // Como é nível estudante, apenas devolvemos sucesso.
     return Response.json(
-      { message: `Inscrição de ${body.matricula} na modalidade ${body.modalidade} realizada com sucesso!` },
+      { message: `Sucesso! O RM ${body.matricula} foi inscrito no torneio de ${body.modalidade}.` },
       { status: 201 }
     );
     

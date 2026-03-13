@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// DADOS FIXOS
 const ATIVIDADES = [
   { id: "1", nome: "Corrida de Saco" },
   { id: "2", nome: "Dança das Cadeiras" },
@@ -20,7 +20,6 @@ const PARTICIPANTES = [
   { id: "p11", nome: "Juliana (NÃO DEVE APARECER)" },
 ];
 
-// ARQUITETURA SÊNIOR: Custom Hook isolado da UI (Como ensinado no PDF React Hooks)
 function useSelecaoMultipla() {
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
 
@@ -38,14 +37,31 @@ function useSelecaoMultipla() {
 }
 
 export default function EducacaoFisica() {
-  // Uso do Custom Hook (Código de UI fica limpo)
   const { alternarSelecao, verificarSeEstaAtivo } = useSelecaoMultipla();
+  const [listaParticipantes, setListaParticipantes] = useState(PARTICIPANTES.slice(0, 10));
+
+  useEffect(() => {
+    async function carregarMeuPerfil() {
+      try {
+        const perfilLocal = await AsyncStorage.getItem("@interclasse_perfil");
+        if (perfilLocal) {
+          const perfil = JSON.parse(perfilLocal);
+          setListaParticipantes([
+            { id: "eu", nome: `${perfil.nome} (Você)` },
+            ...PARTICIPANTES.slice(0, 9)
+          ]);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil nas atividades", error);
+      }
+    }
+    carregarMeuPerfil();
+  }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Atividades Físicas</Text>
 
-      {/* SESSÃO 1: Múltipla Escolha */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Selecione as Dinâmicas</Text>
         <View style={styles.tagsContainer}>
@@ -66,20 +82,18 @@ export default function EducacaoFisica() {
         </View>
       </View>
 
-      {/* SESSÃO 2: FlatList Segura */}
       <View style={styles.sectionLista}>
         <Text style={styles.sectionTitle}>Inscritos (Top 10)</Text>
-        
         <FlatList
-          data={PARTICIPANTES.slice(0, 10)}
+          data={listaParticipantes}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={styles.cardParticipante}>
-              <View style={styles.avatar}>
-                <MaterialIcons name="person" size={24} color="#0a27e2" />
+            <View style={[styles.cardParticipante, item.id === "eu" && { borderColor: "#0a27e2", borderWidth: 2 }]}>
+              <View style={[styles.avatar, item.id === "eu" && { backgroundColor: "#0a27e2" }]}>
+                <MaterialIcons name="person" size={24} color={item.id === "eu" ? "#FFF" : "#0a27e2"} />
               </View>
-              <Text style={styles.nomeParticipante}>{item.nome}</Text>
+              <Text style={[styles.nomeParticipante, item.id === "eu" && { fontWeight: "bold" }]}>{item.nome}</Text>
             </View>
           )}
         />
