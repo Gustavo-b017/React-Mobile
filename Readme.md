@@ -347,15 +347,23 @@ As rotas ficam disponíveis na porta `8081` enquanto o `npx expo start` estiver 
 
 ## Evidencias de teste
 
-Adicione aqui as imagens dos testes realizados no Postman/Insomnia e prints das telas do aplicativo.
+### Testes de API
+
+#### POST /login — Status 200 OK
+
+![Teste POST /login](assets/images/api-login.jpeg)
+
+#### POST /inscricao — Status 201 Created
+
+![Teste POST /inscricao](assets/images/api-inscricao.jpeg)
 
 ### Telas do aplicativo
 
-*(Adicione os prints das telas aqui)*
+#### Tela de Perfil
 
-### Testes de API
+![Tela de Perfil](assets/images/perfil-user.jpeg)
 
-*(Adicione os prints dos testes de cada rota aqui)*
+*(Adicione prints das demais telas aqui)*
 
 ### Video de demonstracao
 
