@@ -7,7 +7,7 @@ import {
   Alert, 
   ActivityIndicator, 
   RefreshControl,
-  Platform
+  Platform 
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "@/server/api";
@@ -24,58 +24,61 @@ export interface Jogo {
   local: string;
 }
 
-const STORAGE_KEY = "@interclasse_jogos";
+const STORAGE_KEY = "@interclasse_jogos_v2026";
 
-// DADOS FANTASIA INTEGRADOS (10 por modalidade)
+// CALENDÁRIO COM DATAS REAIS DE MAIO/2026
 const MOCK_JOGOS: Jogo[] = [
-  // FUTSAL
-  { id: "f1", modalidade: "Futsal", equipas: "1TDSR vs 1TDSO", data: "15/05 - 19:00", local: "Quadra Poliesportiva" },
-  { id: "f2", modalidade: "Futsal", equipas: "2TDSB vs 2TDSZ", data: "15/05 - 20:30", local: "Quadra Poliesportiva" },
-  { id: "f3", modalidade: "Futsal", equipas: "3TDSA vs 1TDSA", data: "16/05 - 18:00", local: "Ginásio Principal" },
-  { id: "f4", modalidade: "Futsal", equipas: "1MBA vs 2MBA", data: "16/05 - 21:00", local: "Quadra Poliesportiva" },
-  { id: "f5", modalidade: "Futsal", equipas: "Vencedor J1 vs Vencedor J2", data: "17/05 - 19:00", local: "Ginásio Principal" },
-  { id: "f6", modalidade: "Futsal", equipas: "3TDSB vs 2TDSR", data: "18/05 - 14:00", local: "Quadra Poliesportiva" },
-  { id: "f7", modalidade: "Futsal", equipas: "1TDSJ vs 1TDSK", data: "18/05 - 15:30", local: "Quadra Poliesportiva" },
-  { id: "f8", modalidade: "Futsal", equipas: "2TDSH vs 3TDSH", data: "19/05 - 19:00", local: "Ginásio Principal" },
-  { id: "f9", modalidade: "Futsal", equipas: "Semifinal A", data: "20/05 - 20:00", local: "Ginásio Principal" },
-  { id: "f10", modalidade: "Futsal", equipas: "Grande Final", data: "22/05 - 21:00", local: "Ginásio Principal" },
-  // VÔLEI
-  { id: "v1", modalidade: "Vôlei", equipas: "Sistemas vs Redes", data: "15/05 - 14:00", local: "Quadra B" },
-  { id: "v2", modalidade: "Vôlei", equipas: "Cyber vs Defesa", data: "15/05 - 15:00", local: "Quadra B" },
-  { id: "v3", modalidade: "Vôlei", equipas: "Engenharia vs Dados", data: "16/05 - 14:00", local: "Quadra B" },
-  { id: "v4", modalidade: "Vôlei", equipas: "Cloud vs DevOps", data: "16/05 - 15:00", local: "Quadra B" },
-  { id: "v5", modalidade: "Vôlei", equipas: "Design vs UX", data: "17/05 - 14:00", local: "Quadra B" },
-  { id: "v6", modalidade: "Vôlei", equipas: "1TDSR vs 1TDSB", data: "17/05 - 15:00", local: "Quadra B" },
-  { id: "v7", modalidade: "Vôlei", equipas: "2TDSS vs 2TDSY", data: "18/05 - 16:00", local: "Quadra B" },
-  { id: "v8", modalidade: "Vôlei", equipas: "Quartas de Final 1", data: "19/05 - 14:00", local: "Quadra B" },
-  { id: "v9", modalidade: "Vôlei", equipas: "Semifinal", data: "20/05 - 15:00", local: "Quadra B" },
-  { id: "v10", modalidade: "Vôlei", equipas: "Final Feminina", data: "22/05 - 18:00", local: "Ginásio Principal" },
-  // BASQUETE
-  { id: "b1", modalidade: "Basquete", equipas: "Lakers FIAP vs Bulls TDS", data: "15/05 - 10:00", local: "Arena Central" },
-  { id: "b2", modalidade: "Basquete", equipas: "Python vs Java", data: "15/05 - 11:30", local: "Arena Central" },
-  { id: "b3", modalidade: "Basquete", equipas: "IA vs Mobile", data: "16/05 - 10:00", local: "Arena Central" },
-  { id: "b4", modalidade: "Basquete", equipas: "Frontend vs Backend", data: "16/05 - 11:30", local: "Arena Central" },
-  { id: "b5", modalidade: "Basquete", equipas: "Turma A vs Turma C", data: "17/05 - 10:00", local: "Arena Central" },
-  { id: "b6", modalidade: "Basquete", equipas: "Blockchain vs IOT", data: "17/05 - 11:30", local: "Arena Central" },
-  { id: "b7", modalidade: "Basquete", equipas: "Security vs Privacy", data: "18/05 - 10:00", local: "Arena Central" },
-  { id: "b8", modalidade: "Basquete", equipas: "Playoffs Jogo 1", data: "19/05 - 11:30", local: "Arena Central" },
-  { id: "b9", modalidade: "Basquete", equipas: "Disputa Bronze", data: "21/05 - 16:00", local: "Arena Central" },
-  { id: "b10", modalidade: "Basquete", equipas: "Final 3x3", data: "22/05 - 20:00", local: "Arena Central" },
-  // E-SPORTS
-  { id: "e1", modalidade: "E-sports", equipas: "CS2: TDS vs ADS", data: "15/05 - 22:00", local: "Lab 501 / Twitch" },
-  { id: "e2", modalidade: "E-sports", equipas: "LoL: Turma X vs Turma Y", data: "15/05 - 23:30", local: "Lab 501 / Twitch" },
-  { id: "e3", modalidade: "E-sports", equipas: "Valorant: Agents vs Radiants", data: "16/05 - 22:00", local: "Discord Oficial" },
-  { id: "e4", modalidade: "E-sports", equipas: "FC24: RM 991 vs RM 992", data: "16/05 - 23:00", local: "Lounge FIAP" },
-  { id: "e5", modalidade: "E-sports", equipas: "LoL: Semifinal 1", data: "17/05 - 20:00", local: "Twitch FIAP" },
-  { id: "e6", modalidade: "E-sports", equipas: "CS2: Semifinal 2", data: "18/05 - 20:00", local: "Twitch FIAP" },
-  { id: "e7", modalidade: "E-sports", equipas: "Rocket League: Open", data: "19/05 - 18:00", local: "Online" },
-  { id: "e8", modalidade: "E-sports", equipas: "SF6: Top 8", data: "20/05 - 19:00", local: "Lounge FIAP" },
-  { id: "e9", modalidade: "E-sports", equipas: "Valorant: Final", data: "21/05 - 21:00", local: "Arena Digital" },
-  { id: "e10", modalidade: "E-sports", equipas: "LoL: Grande Final", data: "22/05 - 22:00", local: "Arena Digital" },
+  // FUTSAL - Rodadas de Segunda e Quarta
+  { id: "f1", modalidade: "Futsal", equipas: "Confronto Grupo A", data: "04/05/2026 - 19:00", local: "Ginásio I" },
+  { id: "f2", modalidade: "Futsal", equipas: "Confronto Grupo B", data: "04/05/2026 - 20:30", local: "Ginásio I" },
+  { id: "f3", modalidade: "Futsal", equipas: "Confronto Grupo C", data: "06/05/2026 - 19:00", local: "Ginásio I" },
+  { id: "f4", modalidade: "Futsal", equipas: "Confronto Grupo D", data: "06/05/2026 - 20:30", local: "Ginásio I" },
+  { id: "f5", modalidade: "Futsal", equipas: "Oitavas de Final", data: "11/05/2026 - 18:00", local: "Ginásio I" },
+  { id: "f6", modalidade: "Futsal", equipas: "Oitavas de Final", data: "11/05/2026 - 19:30", local: "Ginásio I" },
+  { id: "f7", modalidade: "Futsal", equipas: "Quartas de Final", data: "13/05/2026 - 20:00", local: "Ginásio I" },
+  { id: "f8", modalidade: "Futsal", equipas: "Quartas de Final", data: "18/05/2026 - 19:00", local: "Ginásio II" },
+  { id: "f9", modalidade: "Futsal", equipas: "Semifinal", data: "20/05/2026 - 21:00", local: "Arena FIAP" },
+  { id: "f10", modalidade: "Futsal", equipas: "Grande Final", data: "22/05/2026 - 20:00", local: "Arena FIAP" },
+
+  // VÔLEI - Rodadas de Terça e Quinta
+  { id: "v1", modalidade: "Vôlei", equipas: "Rodada de Abertura", data: "05/05/2026 - 14:00", local: "Quadra B" },
+  { id: "v2", modalidade: "Vôlei", equipas: "Rodada de Abertura", data: "05/05/2026 - 15:30", local: "Quadra B" },
+  { id: "v3", modalidade: "Vôlei", equipas: "Fase de Grupos", data: "07/05/2026 - 14:00", local: "Quadra B" },
+  { id: "v4", modalidade: "Vôlei", equipas: "Fase de Grupos", data: "07/05/2026 - 15:30", local: "Quadra B" },
+  { id: "v5", modalidade: "Vôlei", equipas: "Fase Eliminatória", data: "12/05/2026 - 14:00", local: "Quadra B" },
+  { id: "v6", modalidade: "Vôlei", equipas: "Fase Eliminatória", data: "12/05/2026 - 15:30", local: "Quadra B" },
+  { id: "v7", modalidade: "Vôlei", equipas: "Quartas de Final", data: "14/05/2026 - 16:00", local: "Quadra B" },
+  { id: "v8", modalidade: "Vôlei", equipas: "Semifinal", data: "19/05/2026 - 15:00", local: "Quadra B" },
+  { id: "v9", modalidade: "Vôlei", equipas: "Disputa 3º Lugar", data: "21/05/2026 - 14:00", local: "Arena FIAP" },
+  { id: "v10", modalidade: "Vôlei", equipas: "Final", data: "22/05/2026 - 18:00", local: "Arena FIAP" },
+
+  // BASQUETE - Rodadas de Sexta e Sábado
+  { id: "b1", modalidade: "Basquete", equipas: "Classificatórias", data: "08/05/2026 - 10:00", local: "Arena Central" },
+  { id: "b2", modalidade: "Basquete", equipas: "Classificatórias", data: "08/05/2026 - 11:30", local: "Arena Central" },
+  { id: "b3", modalidade: "Basquete", equipas: "Classificatórias", data: "09/05/2026 - 09:00", local: "Arena Central" },
+  { id: "b4", modalidade: "Basquete", equipas: "Classificatórias", data: "09/05/2026 - 10:30", local: "Arena Central" },
+  { id: "b5", modalidade: "Basquete", equipas: "Segunda Fase", data: "15/05/2026 - 10:00", local: "Arena Central" },
+  { id: "b6", modalidade: "Basquete", equipas: "Segunda Fase", data: "15/05/2026 - 11:30", local: "Arena Central" },
+  { id: "b7", modalidade: "Basquete", equipas: "Quartas de Final", data: "16/05/2026 - 10:00", local: "Arena Central" },
+  { id: "b8", modalidade: "Basquete", equipas: "Semifinal", data: "16/05/2026 - 15:00", local: "Arena Central" },
+  { id: "b9", modalidade: "Basquete", equipas: "Disputa de Bronze", data: "22/05/2026 - 09:00", local: "Arena FIAP" },
+  { id: "b10", modalidade: "Basquete", equipas: "Final", data: "22/05/2026 - 11:00", local: "Arena FIAP" },
+
+  // E-SPORTS - Rodadas Noturnas
+  { id: "e1", modalidade: "E-sports", equipas: "Qualificatórias Online", data: "04/05/2026 - 22:00", local: "Servidor Discord" },
+  { id: "e2", modalidade: "E-sports", equipas: "Qualificatórias Online", data: "05/05/2026 - 22:00", local: "Servidor Discord" },
+  { id: "e3", modalidade: "E-sports", equipas: "Fase de Grupos", data: "11/05/2026 - 21:00", local: "Twitch Channel" },
+  { id: "e4", modalidade: "E-sports", equipas: "Fase de Grupos", data: "12/05/2026 - 21:00", local: "Twitch Channel" },
+  { id: "e5", modalidade: "E-sports", equipas: "Quartas de Final", data: "18/05/2026 - 20:00", local: "Lab 501" },
+  { id: "e6", modalidade: "E-sports", equipas: "Quartas de Final", data: "19/05/2026 - 20:00", local: "Lab 501" },
+  { id: "e7", modalidade: "E-sports", equipas: "Semifinal 1", data: "20/05/2026 - 19:00", local: "Lounge 1" },
+  { id: "e8", modalidade: "E-sports", equipas: "Semifinal 2", data: "21/05/2026 - 19:00", local: "Lounge 1" },
+  { id: "e9", modalidade: "E-sports", equipas: "Final Bronze", data: "22/05/2026 - 21:00", local: "Palco Principal" },
+  { id: "e10", modalidade: "E-sports", equipas: "Grande Final Live", data: "22/05/2026 - 22:30", local: "Palco Principal" },
 ];
 
 export default function Calendario() {
-  const [jogos, setJogos] = useState<Jogo[]>(MOCK_JOGOS); // Inicia com os dados fantasia
+  const [jogos, setJogos] = useState<Jogo[]>(MOCK_JOGOS);
   const [carregando, setCarregando] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
 
@@ -89,17 +92,14 @@ export default function Calendario() {
         setJogos(JSON.parse(dadosLocais));
       }
 
-      // Tenta buscar da API real
       const response = await api.get<Jogo[]>("/calendario");
       if (response.data && response.data.length > 0) {
         setJogos(response.data);
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
       }
-
     } catch (error) {
-      console.log("Mantendo dados fantasia ou cache local.");
       if (isAxiosError(error) && jogos.length === 0) {
-        Alert.alert("Aviso", "Exibindo calendário offline.");
+        // Se falhar e não houver cache, mantemos o MOCK_JOGOS
       }
     } finally {
       setCarregando(false);
@@ -123,7 +123,7 @@ export default function Calendario() {
       />
 
       <View style={styles.headerCorpo}>
-        <Text style={styles.overtitle}>PRÓXIMAS PARTIDAS</Text>
+        <Text style={styles.overtitle}>TEMPORADA OFICIAL</Text>
         <Text style={styles.titulo}>AGENDA DE <Text style={styles.tituloDestaque}>GAMES</Text></Text>
         <View style={styles.divisor} />
       </View>
@@ -145,7 +145,7 @@ export default function Calendario() {
           <View style={styles.card}>
             <View style={styles.ladoEsquerdo}>
               <View style={styles.timeIcon}>
-                <MaterialIcons name="event-available" size={20} color="#0a27e2" />
+                <MaterialIcons name="schedule" size={18} color="#0a27e2" />
               </View>
               <View style={styles.linhaConectora} />
             </View>
@@ -161,16 +161,14 @@ export default function Calendario() {
                     {(item.modalidade || "ESPORTE").toUpperCase()}
                   </Text>
                 </LinearGradient>
-                <Text style={styles.dataTexto}>{item.data || "--/--/--"}</Text>
+                <Text style={styles.dataTexto}>{item.data}</Text>
               </View>
 
-              <Text style={styles.equipasTexto}>
-                {item.equipas || "Equipes indefinidas"}
-              </Text>
+              <Text style={styles.equipasTexto}>{item.equipas}</Text>
               
               <View style={styles.localContainer}>
                 <MaterialIcons name="place" size={14} color="#666" />
-                <Text style={styles.localTexto}>{item.local || "Local a definir"}</Text>
+                <Text style={styles.localTexto}>{item.local}</Text>
               </View>
             </View>
           </View>
@@ -188,10 +186,10 @@ const styles = StyleSheet.create({
   tituloDestaque: { color: "#0a27e2" },
   divisor: { width: 50, height: 4, backgroundColor: "#0a27e2", marginTop: 10, borderRadius: 2 },
   lista: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
-  card: { flexDirection: "row", marginBottom: 5 },
+  card: { flexDirection: "row" },
   ladoEsquerdo: { alignItems: "center", width: 40 },
   timeIcon: { 
-    width: 36, height: 36, backgroundColor: "#1a1a1a", borderRadius: 18, 
+    width: 32, height: 32, backgroundColor: "#1a1a1a", borderRadius: 16, 
     justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#333", zIndex: 2
   },
   linhaConectora: { flex: 1, width: 2, backgroundColor: "#1a1a1a", marginVertical: -5 },
