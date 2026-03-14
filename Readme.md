@@ -239,7 +239,7 @@ Registra uma equipe em uma modalidade.
 
 **Request:**
 ```
-POST http://localhost:8081/inscricao
+POST http://localhost:8081/inscricao?modalidadeSelecionada=Futsal
 Content-Type: application/json
 
 {
