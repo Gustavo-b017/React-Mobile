@@ -64,30 +64,51 @@ export default function Inscricao() {
 
     setCarregando(true);
     try {
-      await api.post("/inscricao-time", { modalidade, integrantes: listaIntegrantes });
+      /**
+       * AJUSTE DE INTEGRAÇÃO:
+       * O seu Backend espera 'matricula' e 'modalidade'. 
+       * Estamos enviando o RM do primeiro integrante como matrícula líder.
+       */
+      await api.post("/api/inscricao", { 
+        modalidade: modalidade, 
+        matricula: listaIntegrantes[0].rm, 
+        integrantes: listaIntegrantes 
+      });
       
+      // Lógica de Persistência Local (Offline First)
       const listaSalva = await AsyncStorage.getItem("@interclasse_lista_inscricoes");
       let ranking = listaSalva ? JSON.parse(listaSalva) : [];
+      
       ranking.push({
         id: `time-${listaIntegrantes[0].rm}-${Date.now()}`,
         nome: `Time ${modalidade} (Líder: ${listaIntegrantes[0].nome})`,
         pontos: 100 
       });
+
       await AsyncStorage.setItem("@interclasse_lista_inscricoes", JSON.stringify(ranking));
 
-      Alert.alert("Sucesso!", "Inscrição realizada com sucesso!", [
+      Alert.alert("Sucesso!", "Inscrição realizada e salva no ranking!", [
         { text: "Ver Modalidades", onPress: () => router.replace("/modalidades") }
       ]);
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível realizar a inscrição.");
+      Alert.alert("Erro na API", "O servidor recusou a inscrição ou está offline.");
     } finally {
       setCarregando(false);
     }
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-      <Stack.Screen options={{ title: "Inscrição", headerStyle: { backgroundColor: "#0a27e2" }, headerTintColor: "#FFF" }} />
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"} 
+      style={styles.container}
+    >
+      <Stack.Screen 
+        options={{ 
+          title: "Inscrição", 
+          headerStyle: { backgroundColor: "#0a27e2" }, 
+          headerTintColor: "#FFF" 
+        }} 
+      />
       
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.headerCorpo}>
@@ -96,7 +117,6 @@ export default function Inscricao() {
           <View style={styles.divisor} />
         </View>
 
-        {/* Card Informativo */}
         <LinearGradient colors={['#1a1a1a', '#0a1661']} style={styles.cardInfo}>
           <MaterialIcons name="info-outline" size={20} color="#0a27e2" />
           <Text style={styles.textoInfo}>
@@ -106,7 +126,6 @@ export default function Inscricao() {
           </Text>
         </LinearGradient>
 
-        {/* Formulário */}
         <View style={styles.formAdicionar}>
           <Text style={styles.labelSecao}>ADICIONAR ATLETA</Text>
           <TextInput
@@ -131,7 +150,6 @@ export default function Inscricao() {
           </Pressable>
         </View>
 
-        {/* Listagem */}
         <View style={styles.secaoLista}>
           <View style={styles.listaHeader}>
             <Text style={styles.labelSecao}>ATLETAS INSCRITOS</Text>
@@ -157,10 +175,12 @@ export default function Inscricao() {
           )}
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Pressable 
-            style={[styles.botaoConfirmar, (carregando || (minIntegrantes > 0 && listaIntegrantes.length < minIntegrantes)) && styles.botaoDesabilitado]}
+            style={[
+              styles.botaoConfirmar, 
+              (carregando || (minIntegrantes > 0 && listaIntegrantes.length < minIntegrantes)) && styles.botaoDesabilitado
+            ]}
             onPress={handleConfirmarInscricao}
             disabled={carregando || (minIntegrantes > 0 && listaIntegrantes.length < minIntegrantes)}
           >
@@ -188,73 +208,24 @@ const styles = StyleSheet.create({
   overtitle: { color: "#0a27e2", fontWeight: "800", fontSize: 12, letterSpacing: 2 },
   titulo: { fontSize: 32, fontWeight: "900", color: "#FFF", marginTop: 5 },
   divisor: { width: 50, height: 4, backgroundColor: "#0a27e2", marginTop: 10, borderRadius: 2 },
-  
-  cardInfo: { 
-    flexDirection: "row", 
-    padding: 16, 
-    borderRadius: 12, 
-    alignItems: "center", 
-    gap: 12,
-    borderWidth: 1,
-    borderColor: "rgba(10, 39, 226, 0.3)",
-    marginBottom: 24
-  },
+  cardInfo: { flexDirection: "row", padding: 16, borderRadius: 12, alignItems: "center", gap: 12, borderWidth: 1, borderColor: "rgba(10, 39, 226, 0.3)", marginBottom: 24 },
   textoInfo: { color: "#BBB", fontSize: 13, flex: 1, lineHeight: 18 },
-
   formAdicionar: { backgroundColor: "#1a1a1a", padding: 20, borderRadius: 16, marginBottom: 24 },
   labelSecao: { color: "#FFF", fontSize: 14, fontWeight: "800", marginBottom: 16, letterSpacing: 1 },
-  input: { 
-    backgroundColor: "#222", 
-    color: "#FFF", 
-    padding: 16, 
-    borderRadius: 10, 
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#333"
-  },
-  botaoAdicionar: { 
-    backgroundColor: "#27ae60", 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 14, 
-    borderRadius: 10, 
-    marginTop: 16,
-    gap: 8
-  },
+  input: { backgroundColor: "#222", color: "#FFF", padding: 16, borderRadius: 10, fontSize: 16, borderWidth: 1, borderColor: "#333" },
+  botaoAdicionar: { backgroundColor: "#27ae60", flexDirection: "row", justifyContent: "center", alignItems: "center", padding: 14, borderRadius: 10, marginTop: 16, gap: 8 },
   textoBotaoAdicionar: { color: "#FFF", fontWeight: "bold", fontSize: 15 },
-
   secaoLista: { marginBottom: 30 },
   listaHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 15 },
   badgeContagem: { backgroundColor: "#0a27e2", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
   textoBadge: { color: "#FFF", fontSize: 12, fontWeight: "bold" },
-  
-  itemMembro: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center",
-    backgroundColor: "#1a1a1a", 
-    padding: 16, 
-    borderRadius: 10, 
-    marginBottom: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: "#0a27e2"
-  },
+  itemMembro: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1a1a1a", padding: 16, borderRadius: 10, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: "#0a27e2" },
   textoMembroNome: { color: "#FFF", fontSize: 16, fontWeight: "600" },
   textoMembroRM: { color: "#666", fontSize: 13, marginTop: 2 },
   botaoRemover: { padding: 4 },
   listaVazia: { textAlign: "center", color: "#444", marginTop: 20, fontStyle: "italic" },
-
   footer: { marginTop: 10 },
-  botaoConfirmar: { 
-    backgroundColor: "#0a27e2", 
-    padding: 20, 
-    borderRadius: 14, 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10
-  },
+  botaoConfirmar: { backgroundColor: "#0a27e2", padding: 20, borderRadius: 14, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10 },
   botaoDesabilitado: { opacity: 0.5, backgroundColor: "#333" },
   textoBotaoConfirmar: { color: "#FFF", fontWeight: "900", fontSize: 16 },
   botaoCancelar: { padding: 20, alignItems: "center" },
